@@ -5,7 +5,10 @@ class DocumentController {
 
     async createDocument(req, res) {
         try {
-            const documentData = req.body;
+            const documentData = {
+                ...req.body,
+                userId: req.user._id,  // Attach the current user ID
+            };
             const newDocument = await this.documentService.createDocument(documentData);
             res.status(201).json(newDocument);
         } catch (error) {
@@ -16,13 +19,11 @@ class DocumentController {
     async getDocument(req, res) {
         try {
             const { id } = req.params;
-            const document = await this.documentService.getDocument(id);
-            if (!document) {
-                return res.status(404).json({ message: 'Document not found' });
-            }
+            const document = await this.documentService.getDocument(id, req.user._id);
             res.status(200).json(document);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            const statusCode = error.message === 'Unauthorized access' ? 403 : 404;
+            res.status(statusCode).json({ message: error.message });
         }
     }
 
@@ -30,26 +31,22 @@ class DocumentController {
         try {
             const { id } = req.params;
             const updatedData = req.body;
-            const updatedDocument = await this.documentService.updateDocument(id, updatedData);
-            if (!updatedDocument) {
-                return res.status(404).json({ message: 'Document not found' });
-            }
+            const updatedDocument = await this.documentService.updateDocument(id, updatedData, req.user._id);
             res.status(200).json(updatedDocument);
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            const statusCode = error.message === 'Unauthorized access' ? 403 : 404;
+            res.status(statusCode).json({ message: error.message });
         }
     }
 
     async deleteDocument(req, res) {
         try {
             const { id } = req.params;
-            const deletedDocument = await this.documentService.deleteDocument(id);
-            if (!deletedDocument) {
-                return res.status(404).json({ message: 'Document not found' });
-            }
+            await this.documentService.deleteDocument(id, req.user._id);
             res.status(204).send();
         } catch (error) {
-            res.status(500).json({ message: error.message });
+            const statusCode = error.message === 'Unauthorized access' ? 403 : 404;
+            res.status(statusCode).json({ message: error.message });
         }
     }
 }
