@@ -52,3 +52,7 @@ export const deleteDocument = async (documentId, userId) => {
     await document.deleteOne();
     return document;
 };
+
+export const getAllDocumentsForUser = async (userId) => {
+    return await Document.find({ userId });
+};

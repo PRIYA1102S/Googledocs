@@ -10,14 +10,21 @@ import userRoutes from './routes/userRoutes.js';
 import { connectDB } from './config/db.js';
 import  logger  from './utils/logger.js';
 import authMiddleware from './middlewares/authMiddleware.js';
-
+import uploadRoutes from './routes/upload.js';
+import cors from 'cors';
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// Middleware
-app.use(bodyParser.json());
-// app.use(authMiddleware);
+app.use(cors({
+  origin: '*', // or '*' for all origins (not recommended in prod)
+  credentials: true
+}));
+
+// // Middleware
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ extended: true, limit: '10mb' }));
+
 
 // Connect to Database
 connectDB();
@@ -28,6 +35,8 @@ app.use('/api/users', userRoutes);
 
 // Protected Routes
 app.use('/api/documents', authMiddleware, documentRoutes);
+
+app.use('/api', uploadRoutes);
 
 // Start the server
 app.listen(PORT, () => {

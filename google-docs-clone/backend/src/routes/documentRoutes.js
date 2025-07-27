@@ -11,5 +11,7 @@ router.post('/', authMiddleware, documentController.createDocument.bind(document
 router.get('/:id', authMiddleware, documentController.getDocument.bind(documentController));
 router.put('/:id', authMiddleware, documentController.updateDocument.bind(documentController));
 router.delete('/:id', authMiddleware, documentController.deleteDocument.bind(documentController));
+router.get('/', authMiddleware, documentController.getAllDocuments.bind(documentController));
+
 
 export default router;

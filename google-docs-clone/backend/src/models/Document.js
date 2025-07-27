@@ -5,10 +5,18 @@ const documentSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
-    content: {
+   content: [
+    {
+      type: {
         type: String,
-        required: true,
-    },
+        enum: ['text', 'image'],
+        required: true
+      },
+      content: { type: String }, // for text
+      src: { type: String },     // for images
+      alt: { type: String }      // optional
+    }
+  ],
     userId: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User',

@@ -49,6 +49,16 @@ class DocumentController {
             res.status(statusCode).json({ message: error.message });
         }
     }
+
+
+    async getAllDocuments(req, res) {
+    try {
+      const documents = await this.documentService.getAllDocumentsForUser(req.user.id);
+      res.status(200).json(documents);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch documents' });
+    }
+  }
 }
 
 export default DocumentController;
