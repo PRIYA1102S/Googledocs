@@ -1,19 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
-const TextElement = ({ initialText, onTextChange }) => {
-    const [text, setText] = useState(initialText);
+const TextElement = ({ content, onChange }) => {
+    const [value, setValue] = useState(content);
 
-    const handleChange = (event) => {
-        const newText = event.target.value;
-        setText(newText);
-        onTextChange(newText);
+    useEffect(() => {
+        setValue(content);
+    }, [content]);
+
+    const handleChange = (val) => {
+        setValue(val);
+        onChange(val); 
     };
 
     return (
-        <textarea
-            value={text}
+        <ReactQuill
+            theme="snow"
+            value={value}
             onChange={handleChange}
-            style={{ width: '100%', height: '100px', resize: 'none' }}
+            modules={{
+                toolbar: [
+                    [{ 'header': [1, 2, 3, false] }],
+                    ['bold', 'italic', 'underline'],
+                    [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                    ['clean']
+                ]
+            }}
         />
     );
 };

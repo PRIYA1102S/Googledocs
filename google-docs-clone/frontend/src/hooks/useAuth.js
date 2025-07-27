@@ -10,9 +10,14 @@ const useAuth = () => {
     useEffect(() => {
         const checkAuth = async () => {
             try {
-                const user = await fetch('/api/auth/check'); // Endpoint to check authentication
-                if (user) {
-                    setUser(user);
+                const res = await fetch('/api/auth/check', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                });
+                const data = await res.json();
+                if (res.ok && data.user) {
+                    setUser(data.user);
                     setIsAuthenticated(true);
                 } else {
                     setIsAuthenticated(false);
@@ -31,7 +36,8 @@ const useAuth = () => {
     const handleLogin = async (credentials) => {
         setLoading(true);
         try {
-            const user = await loginUser(credentials);
+            const { user, token } = await loginUser(credentials);
+            localStorage.setItem('token', token);
             setUser(user);
             setIsAuthenticated(true);
         } catch (err) {
@@ -44,7 +50,8 @@ const useAuth = () => {
     const handleRegister = async (userData) => {
         setLoading(true);
         try {
-            const user = await registerUser(userData);
+            const { user, token } = await registerUser(userData);
+            localStorage.setItem('token', token);
             setUser(user);
             setIsAuthenticated(true);
         } catch (err) {

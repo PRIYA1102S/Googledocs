@@ -12,7 +12,21 @@ export const loginUser = async (credentials) => {
     return response.data;
 };
 
-export const getUser = async (userId) => {
-    const response = await axios.get(`${API_URL}/${userId}`);
-    return response.data;
+export const logoutUser = async () => {
+    const token = localStorage.getItem('token');
+    await axios.post('/api/users/logout', {}, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+};
+
+export const getUser = async () => {
+    const token = localStorage.getItem('token');
+    const response = await axios.get(`/api/auth/check`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return response.data.user;
 };
