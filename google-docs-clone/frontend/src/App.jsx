@@ -6,6 +6,7 @@ import Home from './pages/Home';
 import DocumentPage from './pages/DocumentPage';
 import DocumentsListPage from './pages/DocumentsListPage';
 import PrivateRoute from './components/PrivateRoute';
+import SocketStatus from './components/SocketStatus';
 
 const App = () => {
   return (
@@ -30,7 +31,9 @@ const App = () => {
                 </PrivateRoute>
               }
             />
+
           </Routes>
+          <SocketStatus />
         </Router>
       </AuthProvider>
     </ThemeProvider>
