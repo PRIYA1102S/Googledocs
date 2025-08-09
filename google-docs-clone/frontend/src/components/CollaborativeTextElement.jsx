@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import { useTheme } from '../contexts/ThemeContext';
 import 'react-quill/dist/quill.snow.css';
 
-const CollaborativeTextElement = ({ content, onChange, onSelectionChange }) => {
+const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isReadOnly = false }) => {
     const [value, setValue] = useState(content);
     const { isDark } = useTheme();
     const quillRef = useRef(null);
@@ -20,9 +20,11 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange }) => {
     }, [content, value]);
 
     const handleChange = useCallback((val, delta, source, editor) => {
-        if (source === 'user') {
+        if (source === 'user' && !isReadOnly) {
             setValue(val);
-            onChange(val);
+            if (onChange) {
+                onChange(val);
+            }
             
             // Emit selection change for cursor tracking
             if (onSelectionChange && quillRef.current) {
@@ -33,7 +35,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange }) => {
                 }
             }
         }
-    }, [onChange, onSelectionChange]);
+    }, [onChange, onSelectionChange, isReadOnly]);
 
     const handleSelectionChange = useCallback((range, source, editor) => {
         if (source === 'user' && range && onSelectionChange) {
@@ -189,9 +191,10 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange }) => {
                     value={value}
                     onChange={handleChange}
                     onChangeSelection={handleSelectionChange}
-                    modules={modules}
+                    modules={isReadOnly ? { toolbar: false } : modules}
                     formats={formats}
-                    placeholder="Start typing your document..."
+                    readOnly={isReadOnly}
+                    placeholder={isReadOnly ? "This document is read-only" : "Start typing your document..."}
                 />
             </div>
         </>

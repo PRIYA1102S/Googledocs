@@ -9,8 +9,9 @@ import CollaborativeTextElement from './CollaborativeTextElement';
 import ImageElement from './ImageElement';
 import { mergeTextContent, hasConflict } from '../utils/conflictResolution';
 
-const CollaborativeEditor = () => {
-  const { id } = useParams();
+const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
+  const { id: paramId } = useParams();
+  const id = documentId || paramId; // Use prop if provided, otherwise use param
   const navigate = useNavigate();
   const { isDark } = useTheme();
   const { user } = useAuth();
@@ -43,6 +44,7 @@ const CollaborativeEditor = () => {
 
 
   useEffect(() => {
+    let isMounted = true;
     const fetchDocument = async () => {
       try {
         const fetchedDocument = await getDocument(id);
@@ -57,20 +59,25 @@ const CollaborativeEditor = () => {
           content: normalizedContent,
         };
 
+        if (!isMounted) return;
         setDocument(documentData);
         setLastSavedContent(JSON.stringify(documentData));
 
         console.log('Fetched document on edit page:', fetchedDocument);
+        if (!isMounted) return;
         setIsOnline(true);
       } catch (error) {
         console.error('Error fetching document:', error);
+        if (!isMounted) return;
         setIsOnline(false);
       } finally {
+        if (!isMounted) return;
         setIsLoading(false);
       }
     };
 
     fetchDocument();
+    return () => { isMounted = false; };
   }, [id]);
 
   // Set up socket event listeners
@@ -276,19 +283,22 @@ const CollaborativeEditor = () => {
       )}
 
       {/* Image Upload */}
-      <div className={`mb-4 p-4 rounded ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'}`}>
-        <label className={`block font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>Add Image</label>
-        <input 
-          type="file" 
-          accept="image/*" 
-          onChange={handleImageUpload}
-          className={`block w-full text-sm ${
-            isDark 
-              ? 'text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600' 
-              : 'text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
-          }`}
-        />
-      </div>
+      {/* Upload Image Section - only show if not read-only */}
+      {!isReadOnly && (
+        <div className={`mb-4 p-4 rounded ${isDark ? 'bg-gray-800 border border-gray-700' : 'bg-gray-50 border border-gray-200'}`}>
+          <label className={`block font-semibold mb-1 ${isDark ? 'text-white' : 'text-gray-800'}`}>Add Image</label>
+          <input 
+            type="file" 
+            accept="image/*" 
+            onChange={handleImageUpload}
+            className={`block w-full text-sm ${
+              isDark 
+                ? 'text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-gray-700 file:text-white hover:file:bg-gray-600' 
+                : 'text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100'
+            }`}
+          />
+        </div>
+      )}
 
       {/* Document Content */}
       <div className="space-y-4">
@@ -298,7 +308,8 @@ const CollaborativeEditor = () => {
               <CollaborativeTextElement
                 key={index}
                 content={element.content}
-                onChange={(newContent) => {
+                isReadOnly={isReadOnly}
+                onChange={isReadOnly ? undefined : (newContent) => {
                   const updatedContent = [...document.content];
                   updatedContent[index].content = newContent;
                   handleChange(updatedContent);
@@ -329,23 +340,38 @@ const CollaborativeEditor = () => {
         })}
       </div>
 
-      {/* Save Button */}
-      <div className="mt-6 flex items-center space-x-4">
-        <button
-          onClick={handleSave}
-          disabled={isSaving}
-          className={`px-4 py-2 rounded transition-colors duration-200 ${
-            isSaving 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-500 hover:bg-blue-600'
-          } text-white`}
-        >
-          {isSaving ? 'Saving...' : 'Save Now'}
-        </button>
-        <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-          Changes are auto-saved every 2 seconds
-        </span>
-      </div>
+      {/* Save Button - only show if not read-only */}
+      {!isReadOnly && (
+        <div className="mt-6 flex items-center space-x-4">
+          <button
+            onClick={handleSave}
+            disabled={isSaving}
+            className={`px-4 py-2 rounded transition-colors duration-200 ${
+              isSaving 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : 'bg-blue-500 hover:bg-blue-600'
+            } text-white`}
+          >
+            {isSaving ? 'Saving...' : 'Save Now'}
+          </button>
+          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            Changes are auto-saved every 2 seconds
+          </span>
+        </div>
+      )}
+      
+      {/* Read-only indicator */}
+      {isReadOnly && (
+        <div className="mt-6 flex items-center space-x-2">
+          <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+          </svg>
+          <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            You have view-only access to this document
+          </span>
+        </div>
+      )}
     </div>
   );
 };

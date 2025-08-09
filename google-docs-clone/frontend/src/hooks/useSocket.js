@@ -1,8 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const useSocket = (documentId, userId, userName) => {
   const socketRef = useRef(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     if (!documentId || !userId || !userName) return;
@@ -16,6 +17,7 @@ const useSocket = (documentId, userId, userName) => {
 
     // Add minimal connection logging
     socket.on('connect', () => {
+      setIsConnected(true);
       console.log('✅ Socket connected');
     });
 
@@ -33,6 +35,7 @@ const useSocket = (documentId, userId, userName) => {
     // Cleanup on unmount
     return () => {
       if (socket) {
+        setIsConnected(false);
         socket.disconnect();
         socketRef.current = null;
       }
@@ -40,7 +43,7 @@ const useSocket = (documentId, userId, userName) => {
   }, [documentId, userId, userName]);
 
   const emitDocumentChange = (delta, content) => {
-    if (socketRef.current) {
+    if (socketRef.current && isConnected) {
       console.log('Socket emitting document-change:', { documentId, delta, content });
       socketRef.current.emit('document-change', {
         documentId,
@@ -48,7 +51,7 @@ const useSocket = (documentId, userId, userName) => {
         content,
       });
     } else {
-      console.error('Socket not connected, cannot emit document-change');
+      console.warn('Socket not connected yet, skipping document-change emit');
     }
   };
 
@@ -124,6 +127,7 @@ const useSocket = (documentId, userId, userName) => {
 
   return {
     socket: socketRef.current,
+    isConnected,
     emitDocumentChange,
     emitCursorChange,
     onDocumentChange,

@@ -17,6 +17,11 @@ const useAutoSave = (documentId, document, enabled = true) => {
       return;
     }
 
+    // Prevent saving obviously invalid payloads
+    if (!document.title || document.title.trim() === '') {
+      return;
+    }
+
     try {
       isSavingRef.current = true;
       await updateDocument(documentId, document);
@@ -53,16 +58,14 @@ const useAutoSave = (documentId, document, enabled = true) => {
     };
   }, [document, debouncedSave, enabled]);
 
-  // Save immediately when component unmounts
+  // Cleanup timers on unmount; do not trigger a save to avoid state update after unmount warnings
   useEffect(() => {
     return () => {
       if (timeoutRef.current) {
         clearTimeout(timeoutRef.current);
       }
-      // Immediate save on unmount
-      saveDocument();
     };
-  }, [saveDocument]);
+  }, []);
 
   const forceSave = useCallback(() => {
     if (timeoutRef.current) {
