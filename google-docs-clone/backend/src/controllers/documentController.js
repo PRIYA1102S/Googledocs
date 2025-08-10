@@ -135,7 +135,7 @@ class DocumentController {
             const shareableLink = await this.documentService.generateShareableLink(id, req.user._id);
             res.status(200).json({ 
                 shareableLink,
-                fullUrl: `${req.protocol}://${req.get('host')}/shared/${shareableLink}`
+                fullUrl: `${req.protocol}://${req.get('host')}/api/documents/shared/${shareableLink}`
             });
         } catch (error) {
             const statusCode = error.message.includes('not found') ? 404 : 
@@ -174,7 +174,7 @@ class DocumentController {
             res.status(200).json({
                 owner: document.userId,
                 collaborators,
-                userPermission: document.getUserPermission(req.user._id)
+                userPermission: document.userPermission
             });
         } catch (error) {
             const statusCode = error.message.includes('not found') ? 404 : 

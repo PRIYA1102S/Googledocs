@@ -22,11 +22,13 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   const [isOnline, setIsOnline] = useState(false);
   const [lastSavedContent, setLastSavedContent] = useState(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [userPermission, setUserPermission] = useState(null);
   const debounceTimeoutRef = useRef(null);
   const isRemoteChangeRef = useRef(false);
 
-  // Auto-save hook
-  const { forceSave, isSaving } = useAutoSave(id, document, isOnline);
+  // Auto-save hook - disable for viewers
+  const canEdit = userPermission === 'owner' || userPermission === 'editor';
+  const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit);
 
   // Socket connection
   const {
@@ -62,6 +64,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
         if (!isMounted) return;
         setDocument(documentData);
         setLastSavedContent(JSON.stringify(documentData));
+        setUserPermission(fetchedDocument.userPermission);
 
         console.log('Fetched document on edit page:', fetchedDocument);
         if (!isMounted) return;
@@ -137,6 +140,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   }, [user, onDocumentChange, onUserJoined, onUserLeft, onUsersInDocument, offDocumentChange, offUserJoined, offUserLeft, offUsersInDocument]);
 
   const handleChange = (updatedContent) => {
+    // Prevent viewers from making changes
+    if (userPermission === 'viewer') {
+      console.log('Viewers cannot edit documents');
+      return;
+    }
+
     setDocument((prevDoc) => ({ ...prevDoc, content: updatedContent }));
     setHasUnsavedChanges(true);
 
@@ -158,6 +167,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   };
 
   const handleSave = async () => {
+    // Prevent viewers from saving
+    if (userPermission === 'viewer') {
+      alert('Viewers cannot save documents');
+      return;
+    }
+
     try {
       await forceSave();
       setLastSavedContent(JSON.stringify(document));
@@ -170,6 +185,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   };
 
   const handleImageUpload = async (e) => {
+    // Prevent viewers from uploading images
+    if (userPermission === 'viewer') {
+      alert('Viewers cannot upload images');
+      return;
+    }
+
     const file = e.target.files[0];
     if (!file) return;
 

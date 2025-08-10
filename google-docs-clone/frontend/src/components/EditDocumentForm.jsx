@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import { useTheme } from '../contexts/ThemeContext';
 import 'react-quill/dist/quill.snow.css';
@@ -7,14 +7,18 @@ const EditDocumentForm = ({ document, onSave, onCancel }) => {
   const [title, setTitle] = useState(document.title || '');
   const [content, setContent] = useState('');
   const { isDark } = useTheme();
+  const isInitializedRef = useRef(false);
 
   useEffect(() => {
-    // Extract text content from document for editing
-    if (Array.isArray(document.content)) {
-      const textBlock = document.content.find(block => block.type === 'text');
-      setContent(textBlock ? textBlock.content : '');
-    } else {
-      setContent(document.content || '');
+    // Only set content on initial load to prevent cursor jumping
+    if (!isInitializedRef.current) {
+      if (Array.isArray(document.content)) {
+        const textBlock = document.content.find(block => block.type === 'text');
+        setContent(textBlock ? textBlock.content : '');
+      } else {
+        setContent(document.content || '');
+      }
+      isInitializedRef.current = true;
     }
   }, [document]);
 

@@ -1,9 +1,11 @@
 import axiosInstance from '../axiosInstance';
 
+const API_URL = '/api/documents';
+
 // Share a document with another user
 export const shareDocument = async (documentId, email, permission) => {
     try {
-        const response = await axiosInstance.post(`/documents/${documentId}/share`, {
+        const response = await axiosInstance.post(`${API_URL}/${documentId}/share`, {
             email,
             permission
         });
@@ -16,7 +18,7 @@ export const shareDocument = async (documentId, email, permission) => {
 // Remove a collaborator from a document
 export const removeCollaborator = async (documentId, collaboratorId) => {
     try {
-        const response = await axiosInstance.delete(`/documents/${documentId}/collaborators/${collaboratorId}`);
+        const response = await axiosInstance.delete(`${API_URL}/${documentId}/collaborators/${collaboratorId}`);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to remove collaborator');
@@ -26,7 +28,7 @@ export const removeCollaborator = async (documentId, collaboratorId) => {
 // Update collaborator permission
 export const updateCollaboratorPermission = async (documentId, collaboratorId, permission) => {
     try {
-        const response = await axiosInstance.put(`/documents/${documentId}/collaborators/${collaboratorId}`, {
+        const response = await axiosInstance.put(`${API_URL}/${documentId}/collaborators/${collaboratorId}`, {
             permission
         });
         return response.data;
@@ -38,7 +40,7 @@ export const updateCollaboratorPermission = async (documentId, collaboratorId, p
 // Get all collaborators for a document
 export const getCollaborators = async (documentId) => {
     try {
-        const response = await axiosInstance.get(`/documents/${documentId}/collaborators`);
+        const response = await axiosInstance.get(`${API_URL}/${documentId}/collaborators`);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to fetch collaborators');
@@ -48,7 +50,7 @@ export const getCollaborators = async (documentId) => {
 // Generate shareable link
 export const generateShareableLink = async (documentId) => {
     try {
-        const response = await axiosInstance.post(`/documents/${documentId}/generate-link`);
+        const response = await axiosInstance.post(`${API_URL}/${documentId}/generate-link`);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to generate shareable link');
@@ -58,7 +60,7 @@ export const generateShareableLink = async (documentId) => {
 // Get document by shareable link
 export const getDocumentByShareableLink = async (shareableLink) => {
     try {
-        const response = await axiosInstance.get(`/documents/shared/${shareableLink}`);
+        const response = await axiosInstance.get(`${API_URL}/shared/${shareableLink}`);
         return response.data;
     } catch (error) {
         throw new Error(error.response?.data?.message || 'Failed to access shared document');

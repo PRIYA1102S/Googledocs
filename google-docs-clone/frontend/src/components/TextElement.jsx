@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import ReactQuill from 'react-quill';
 import { useTheme } from '../contexts/ThemeContext';
 import 'react-quill/dist/quill.snow.css';
@@ -6,9 +6,14 @@ import 'react-quill/dist/quill.snow.css';
 const TextElement = ({ content, onChange }) => {
     const [value, setValue] = useState(content);
     const { isDark } = useTheme();
+    const isInitializedRef = useRef(false);
 
     useEffect(() => {
-        setValue(content);
+        // Only set content on initial load to prevent cursor jumping
+        if (!isInitializedRef.current) {
+            setValue(content);
+            isInitializedRef.current = true;
+        }
     }, [content]);
 
     const handleChange = (val) => {

@@ -24,6 +24,7 @@ const useAutoSave = (documentId, document, enabled = true) => {
 
     try {
       isSavingRef.current = true;
+      // Don't use the returned document to avoid state updates that could reset cursor
       await updateDocument(documentId, document);
       lastSavedRef.current = currentDocString;
       console.log('Document auto-saved successfully');

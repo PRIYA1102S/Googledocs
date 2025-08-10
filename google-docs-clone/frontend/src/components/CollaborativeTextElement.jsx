@@ -9,18 +9,53 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
     const quillRef = useRef(null);
     const isRemoteChangeRef = useRef(false);
     const lastChangeSourceRef = useRef('user');
+    const cursorPositionRef = useRef(null);
+    const isUserTypingRef = useRef(false);
+    const isInitializedRef = useRef(false);
+
+    // Initialize component with content
+    useEffect(() => {
+        if (!isInitializedRef.current && content) {
+            setValue(content);
+            isInitializedRef.current = true;
+        }
+    }, [content]);
 
     useEffect(() => {
-        // Always reflect external content updates in the editor
-        if (content !== value) {
+        // Only update if content is actually different and not from user typing
+        if (content !== value && !isUserTypingRef.current && isInitializedRef.current) {
+            // Save current cursor position before updating
+            if (quillRef.current) {
+                const quill = quillRef.current.getEditor();
+                const selection = quill.getSelection();
+                if (selection) {
+                    cursorPositionRef.current = {
+                        index: selection.index,
+                        length: selection.length
+                    };
+                }
+            }
+            
             setValue(content);
-            isRemoteChangeRef.current = false;
-            lastChangeSourceRef.current = 'user';
+            isRemoteChangeRef.current = true;
+            
+            // Restore cursor position after content update
+            setTimeout(() => {
+                if (quillRef.current && cursorPositionRef.current !== null) {
+                    const quill = quillRef.current.getEditor();
+                    const length = quill.getLength();
+                    const position = Math.min(cursorPositionRef.current.index, length - 1);
+                    const selectionLength = Math.min(cursorPositionRef.current.length, length - position);
+                    quill.setSelection(position, selectionLength);
+                    cursorPositionRef.current = null;
+                }
+            }, 0);
         }
     }, [content, value]);
 
     const handleChange = useCallback((val, delta, source, editor) => {
         if (source === 'user' && !isReadOnly) {
+            isUserTypingRef.current = true;
             setValue(val);
             if (onChange) {
                 onChange(val);
@@ -34,6 +69,11 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
                     onSelectionChange(selection);
                 }
             }
+            
+            // Reset the typing flag after a short delay
+            setTimeout(() => {
+                isUserTypingRef.current = false;
+            }, 150);
         }
     }, [onChange, onSelectionChange, isReadOnly]);
 
