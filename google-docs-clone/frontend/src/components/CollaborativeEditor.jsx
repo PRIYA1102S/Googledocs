@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDocument, updateDocument } from '../services/documentService';
 import { useTheme } from '../contexts/ThemeContext';
@@ -28,7 +28,14 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
   // Auto-save hook - disable for viewers
   const canEdit = userPermission === 'owner' || userPermission === 'editor';
-  const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit);
+  
+  // Callback to reset unsaved changes when auto-save completes
+  const handleAutoSaveSuccess = useCallback(() => {
+    console.log('Auto-save success callback triggered, resetting hasUnsavedChanges');
+    setHasUnsavedChanges(false);
+  }, []);
+  
+  const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit, handleAutoSaveSuccess);
 
   // Socket connection
   const {
@@ -66,7 +73,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
         setLastSavedContent(JSON.stringify(documentData));
         setUserPermission(fetchedDocument.userPermission);
 
-        console.log('Fetched document on edit page:', fetchedDocument);
+
         if (!isMounted) return;
         setIsOnline(true);
       } catch (error) {
@@ -89,7 +96,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
     // Handle document changes from other sessions (including same user in another tab)
     onDocumentChange(({ content, userId, userName }) => {
-      console.log('Received document change from:', userName, 'content:', content);
+
       isRemoteChangeRef.current = true;
 
       setDocument((prevDoc) => {
@@ -106,7 +113,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
         return { ...prevDoc, content };
       });
 
-      console.log(`Document updated by ${userName}`);
+
     });
 
     // Handle user presence
@@ -118,12 +125,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
         }
         return prev;
       });
-      console.log(`${userName} joined the document`);
+
     });
 
     onUserLeft(({ userId, userName }) => {
       setConnectedUsers((prev) => prev.filter((u) => u.userId !== userId));
-      console.log(`${userName} left the document`);
+
     });
 
     onUsersInDocument((users) => {
@@ -161,7 +168,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
     }
 
     debounceTimeoutRef.current = setTimeout(() => {
-      console.log('Emitting document change:', { documentId: id, content: updatedContent });
+
       emitDocumentChange(null, updatedContent);
     }, 300);
   };

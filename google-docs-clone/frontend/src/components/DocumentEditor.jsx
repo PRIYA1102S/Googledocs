@@ -28,7 +28,7 @@ const DocumentEditor = () => {
           content: normalizedContent,
         });
 
-        console.log('Fetched document on edit page:', fetchedDocument);
+
       } catch (error) {
         console.error('Error fetching document:', error);
       } finally {

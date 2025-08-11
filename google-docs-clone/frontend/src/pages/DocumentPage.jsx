@@ -23,10 +23,10 @@ const DocumentPage = () => {
 
     const fetchDocument = async () => {
         try {
-            console.log('DocumentPage: Starting to fetch document with id:', id);
+        
             setLoading(true);
             const doc = await getDocument(id);
-            console.log('DocumentPage: Successfully fetched document:', doc);
+
             setDocument(doc);
             // Get user permission from the document
             setUserPermission(doc.userPermission || 'owner');

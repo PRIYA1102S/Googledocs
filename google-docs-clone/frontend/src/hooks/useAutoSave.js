@@ -1,13 +1,13 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { updateDocument } from '../services/documentService';
 
-const useAutoSave = (documentId, document, enabled = true) => {
+const useAutoSave = (documentId, document, enabled = true, onSaveSuccess = null) => {
   const timeoutRef = useRef(null);
   const lastSavedRef = useRef(null);
-  const isSavingRef = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
 
   const saveDocument = useCallback(async () => {
-    if (!documentId || !document || isSavingRef.current) {
+    if (!documentId || !document || isSaving) {
       return;
     }
 
@@ -23,17 +23,23 @@ const useAutoSave = (documentId, document, enabled = true) => {
     }
 
     try {
-      isSavingRef.current = true;
+      setIsSaving(true);
       // Don't use the returned document to avoid state updates that could reset cursor
       await updateDocument(documentId, document);
       lastSavedRef.current = currentDocString;
       console.log('Document auto-saved successfully');
+      
+      // Call the success callback if provided
+      if (onSaveSuccess) {
+        console.log('Auto-save completed successfully, calling success callback');
+        onSaveSuccess();
+      }
     } catch (error) {
       console.error('Auto-save failed:', error);
     } finally {
-      isSavingRef.current = false;
+      setIsSaving(false);
     }
-  }, [documentId, document]);
+  }, [documentId, document, onSaveSuccess]);
 
   const debouncedSave = useCallback(() => {
     if (!enabled) return;
@@ -77,7 +83,7 @@ const useAutoSave = (documentId, document, enabled = true) => {
 
   return {
     forceSave,
-    isSaving: isSavingRef.current
+    isSaving
   };
 };
 
