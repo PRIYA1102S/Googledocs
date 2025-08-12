@@ -4,6 +4,7 @@ import { io } from 'socket.io-client';
 const useSocket = (documentId, userId, userName) => {
   const socketRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
+  
 
   useEffect(() => {
     if (!documentId || !userId || !userName) return;
@@ -12,6 +13,7 @@ const useSocket = (documentId, userId, userName) => {
     socketRef.current = io('http://localhost:5000', {
       withCredentials: true,
     });
+
 
     const socket = socketRef.current;
 
@@ -56,12 +58,15 @@ const useSocket = (documentId, userId, userName) => {
   };
 
   const emitCursorChange = (position, selection) => {
-    if (socketRef.current) {
+    if (socketRef.current && isConnected) {
+      console.log('Socket emitting cursor-change:', { documentId, position, selection });
       socketRef.current.emit('cursor-change', {
         documentId,
         position,
         selection,
       });
+    } else {
+      console.warn('Socket not connected yet, skipping cursor-change emit');
     }
   };
 

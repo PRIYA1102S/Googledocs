@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { getDocumentByShareableLink } from '../services/sharingService';
-import DocumentEditor from '../components/DocumentEditor';
+import CollaborativeEditor from '../components/CollaborativeEditor';
 import ThemeToggle from '../components/ThemeToggle';
 
 const SharedDocumentPage = () => {
@@ -122,8 +122,8 @@ const SharedDocumentPage = () => {
         </div>
       </header>
 
-      {/* Document Editor */}
-      <DocumentEditor 
+      {/* Collaborative Editor with websockets */}
+      <CollaborativeEditor 
         documentId={document._id} 
         isReadOnly={userPermission === 'viewer'}
       />

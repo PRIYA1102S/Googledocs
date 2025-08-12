@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import { useTheme } from '../contexts/ThemeContext';
 import 'react-quill/dist/quill.snow.css';
 
-const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isReadOnly = false }) => {
+const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isReadOnly = false, remoteSelections = [] }) => {
     const [value, setValue] = useState(content);
     const { isDark } = useTheme();
     const quillRef = useRef(null);
@@ -79,6 +79,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
 
     const handleSelectionChange = useCallback((range, source, editor) => {
         if (source === 'user' && range && onSelectionChange) {
+            console.log('Selection changed:', range, 'source:', source);
             onSelectionChange(range);
         }
     }, [onSelectionChange]);
@@ -200,6 +201,10 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
             position: absolute;
             z-index: 5;
         }
+        /* Overlay container */
+        .ql-remote-overlays {
+            position: relative;
+        }
     `;
 
     const modules = {
@@ -225,17 +230,72 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
         <>
             <style>{customStyles}</style>
             <div className={`${isDark ? 'bg-gray-800' : 'bg-white'} rounded-lg border ${isDark ? 'border-gray-700' : 'border-gray-200'} shadow-sm`}>
-                <ReactQuill
-                    ref={quillRef}
-                    theme="snow"
-                    value={value}
-                    onChange={handleChange}
-                    onChangeSelection={handleSelectionChange}
-                    modules={isReadOnly ? { toolbar: false } : modules}
-                    formats={formats}
-                    readOnly={isReadOnly}
-                    placeholder={isReadOnly ? "This document is read-only" : "Start typing your document..."}
-                />
+                <div className="ql-remote-overlays" style={{ position: 'relative' }}>
+                    <ReactQuill
+                        ref={quillRef}
+                        theme="snow"
+                        value={value}
+                        onChange={handleChange}
+                        onChangeSelection={handleSelectionChange}
+                        modules={isReadOnly ? { toolbar: false } : modules}
+                        formats={formats}
+                        readOnly={isReadOnly}
+                        placeholder={isReadOnly ? "This document is read-only" : "Start typing your document..."}
+                    />
+
+                    {/* Remote selections & cursors */}
+                    {quillRef.current && remoteSelections && remoteSelections.map((sel) => {
+                        try {
+                            const quill = quillRef.current.getEditor();
+                            const bounds = quill.getBounds(sel.index, sel.length || 0);
+                            const container = quill.getBounds(0, quill.getLength());
+                            if (!bounds) return null;
+
+                            const cursorStyle = {
+                                position: 'absolute',
+                                left: `${bounds.left}px`,
+                                top: `${bounds.top}px`,
+                                height: `${bounds.height || 18}px`,
+                                width: '2px',
+                                backgroundColor: sel.color,
+                                zIndex: 10,
+                            };
+
+                            const nameStyle = {
+                                position: 'absolute',
+                                left: `${bounds.left}px`,
+                                top: `${Math.max(bounds.top - 20, 0)}px`,
+                                backgroundColor: sel.color,
+                                color: '#fff',
+                                padding: '2px 6px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                whiteSpace: 'nowrap',
+                                zIndex: 11,
+                            };
+
+                            const selectionStyle = sel.length > 0 ? {
+                                position: 'absolute',
+                                left: `${bounds.left}px`,
+                                top: `${bounds.top}px`,
+                                width: `${bounds.width || 2}px`,
+                                height: `${bounds.height || 18}px`,
+                                backgroundColor: `${sel.color}33`, // ~20% opacity
+                                zIndex: 5,
+                            } : null;
+
+                            return (
+                                <div key={sel.userId}>
+                                    {selectionStyle && <div style={selectionStyle} />}
+                                    <div style={cursorStyle} />
+                                    <div style={nameStyle}>{sel.name || 'User'}</div>
+                                </div>
+                            );
+                        } catch (e) {
+                            return null;
+                        }
+                    })}
+                </div>
             </div>
         </>
     );

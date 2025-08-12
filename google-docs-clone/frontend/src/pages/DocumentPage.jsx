@@ -120,18 +120,6 @@ const DocumentPage = () => {
                 </div>
             </header>
             
-            {/* Temporary debug - let's see if this renders */}
-            <div className="p-4">
-                <p className={isDark ? 'text-white' : 'text-gray-900'}>
-                    Document loaded successfully! Title: {document.title}
-                </p>
-                <p className={isDark ? 'text-white' : 'text-gray-900'}>
-                    User Permission: {userPermission}
-                </p>
-                <p className={isDark ? 'text-white' : 'text-gray-900'}>
-                    Document ID: {id}
-                </p>
-            </div>
             
             <CollaborativeEditor 
                 documentId={id}

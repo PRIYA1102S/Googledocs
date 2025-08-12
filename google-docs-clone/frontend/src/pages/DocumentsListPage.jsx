@@ -35,6 +35,22 @@ const DocumentListPage = () => {
     fetchDocuments();
   }, []);
 
+  // Refetch when window gains focus or tab becomes visible (e.g., after navigating back)
+  useEffect(() => {
+    const handleFocus = () => fetchDocuments();
+    const handleVisibility = () => {
+      if (!document.hidden) fetchDocuments();
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, []);
+
   // Create a new document
   const handleCreate = async (documentData) => {
     try {

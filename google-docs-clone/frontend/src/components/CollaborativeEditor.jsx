@@ -9,6 +9,22 @@ import CollaborativeTextElement from './CollaborativeTextElement';
 import ImageElement from './ImageElement';
 import { mergeTextContent, hasConflict } from '../utils/conflictResolution';
 
+const colorPalette = [
+  '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
+];
+
+function getColorForUserId(userId) {
+  // Simple deterministic hash to color index
+  let hash = 0;
+  const str = String(userId || 'unknown');
+  for (let i = 0; i < str.length; i += 1) {
+    hash = (hash << 5) - hash + str.charCodeAt(i);
+    hash |= 0; // Convert to 32bit int
+  }
+  const idx = Math.abs(hash) % colorPalette.length;
+  return colorPalette[idx];
+}
+
 const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   const { id: paramId } = useParams();
   const id = documentId || paramId; // Use prop if provided, otherwise use param
@@ -25,6 +41,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   const [userPermission, setUserPermission] = useState(null);
   const debounceTimeoutRef = useRef(null);
   const isRemoteChangeRef = useRef(false);
+  const [remoteSelections, setRemoteSelections] = useState({}); // userId -> { index, length, color, name }
 
   // Auto-save hook - disable for viewers
   const canEdit = userPermission === 'owner' || userPermission === 'editor';
@@ -37,22 +54,26 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   
   const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit, handleAutoSaveSuccess);
 
-  // Socket connection
+
+  //Socket connection
   const {
     emitDocumentChange,
+    emitCursorChange,
     onDocumentChange,
+    onCursorChange,
     onUserJoined,
     onUserLeft,
     onUsersInDocument,
     offDocumentChange,
+    offCursorChange,
     offUserJoined,
     offUserLeft,
     offUsersInDocument,
+    isConnected,
   } = useSocket(id, user?.id || user?._id, user?.name || user?.username || user?.email || 'Anonymous');
 
-
-
-  useEffect(() => {
+  
+ useEffect(() => {
     let isMounted = true;
     const fetchDocument = async () => {
       try {
@@ -116,6 +137,26 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
     });
 
+    // Remote cursor/selection updates
+    onCursorChange(({ userId: remoteUserId, userName: remoteUserName, position, selection }) => {
+      console.log('Received cursor change:', { remoteUserId, remoteUserName, position, selection });
+      if (!remoteUserId || (remoteUserId === (user?.id || user?._id))) return;
+      const color = getColorForUserId(remoteUserId);
+      const index = selection?.index ?? position ?? 0;
+      const length = selection?.length ?? 0;
+      setRemoteSelections((prev) => ({
+        ...prev,
+        [remoteUserId]: {
+          userId: remoteUserId,
+          name: remoteUserName,
+          color,
+          index,
+          length,
+          updatedAt: Date.now(),
+        }
+      }));
+    });
+
     // Handle user presence
     onUserJoined(({ userId, userName }) => {
       setConnectedUsers((prev) => {
@@ -130,7 +171,11 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
     onUserLeft(({ userId, userName }) => {
       setConnectedUsers((prev) => prev.filter((u) => u.userId !== userId));
-
+      setRemoteSelections((prev) => {
+        const copy = { ...prev };
+        delete copy[userId];
+        return copy;
+      });
     });
 
     onUsersInDocument((users) => {
@@ -140,11 +185,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
     // Cleanup
     return () => {
       offDocumentChange();
+      offCursorChange();
       offUserJoined();
       offUserLeft();
       offUsersInDocument();
     };
-  }, [user, onDocumentChange, onUserJoined, onUserLeft, onUsersInDocument, offDocumentChange, offUserJoined, offUserLeft, offUsersInDocument]);
+  }, [user, onDocumentChange, onCursorChange, onUserJoined, onUserLeft, onUsersInDocument, offDocumentChange, offCursorChange, offUserJoined, offUserLeft, offUsersInDocument]);
 
   const handleChange = (updatedContent) => {
     // Prevent viewers from making changes
@@ -337,18 +383,29 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
                 key={index}
                 content={element.content}
                 isReadOnly={isReadOnly}
+                remoteSelections={Object.values(remoteSelections)}
                 onChange={isReadOnly ? undefined : (newContent) => {
                   const updatedContent = [...document.content];
                   updatedContent[index].content = newContent;
                   handleChange(updatedContent);
                 }}
+                // onSelectionChange={(selection) => {
+                //   if (!isReadOnly) {
+                //     if (selection) {
+                //       console.log('Emitting cursor change:', selection);
+                //       emitCursorChange(selection.index, selection);
+                //     }
+                //   }
+                // }}
                 onSelectionChange={(selection) => {
-                  // Handle cursor position changes for collaborative editing
-                  if (selection) {
-                    // You can emit cursor changes here if needed
-                    // emitCursorChange(selection.index, selection);
+                  console.log('isConnected at selection:', isConnected);
+                  if (!isReadOnly && selection && isConnected) {
+                    console.log('Emitting cursor change:', selection);
+                    emitCursorChange(selection.index, selection);
                   }
                 }}
+                
+                
               />
             );
           } else if (element.type === 'image') {

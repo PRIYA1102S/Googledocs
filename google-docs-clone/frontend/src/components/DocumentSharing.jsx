@@ -98,7 +98,9 @@ const DocumentSharing = ({ documentId, onClose, userPermission }) => {
     try {
       setLoading(true);
       const data = await generateShareableLink(documentId);
-      setShareableLink(data.fullUrl);
+      // Prefer frontend route so users land on the UI, not API
+      const appUrl = `${window.location.origin}/shared/${data.shareableLink}`;
+      setShareableLink(appUrl);
       setShowShareableLink(true);
     } catch (error) {
       setError(error.message);
