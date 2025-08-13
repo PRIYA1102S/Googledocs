@@ -5,6 +5,7 @@ import DocumentSharing from '../components/DocumentSharing';
 import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import { getDocument } from '../services/documentService';
+import ErrorBoundary from '../components/ErrorBoundary';
 
 const DocumentPage = () => {
     const { isDark } = useTheme();
@@ -121,10 +122,12 @@ const DocumentPage = () => {
             </header>
             
             
-            <CollaborativeEditor 
-                documentId={id}
-                isReadOnly={userPermission === 'viewer'}
-            />
+            <ErrorBoundary>
+                <CollaborativeEditor 
+                    documentId={id}
+                    isReadOnly={userPermission === 'viewer'}
+                />
+            </ErrorBoundary>
             
             {/* Sharing Modal */}
             {showSharing && (
@@ -139,3 +142,4 @@ const DocumentPage = () => {
 };
 
 export default DocumentPage;
+

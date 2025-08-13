@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getDocument, updateDocument } from '../services/documentService';
 import { useTheme } from '../contexts/ThemeContext';
@@ -8,30 +8,32 @@ import useAutoSave from '../hooks/useAutoSave';
 import CollaborativeTextElement from './CollaborativeTextElement';
 import ImageElement from './ImageElement';
 import { mergeTextContent, hasConflict } from '../utils/conflictResolution';
+import { AuthContext } from '../contexts/AuthContext';
 
 const colorPalette = [
   '#ef4444', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316'
 ];
 
-function getColorForUserId(userId) {
-  // Simple deterministic hash to color index
-  let hash = 0;
-  const str = String(userId || 'unknown');
-  for (let i = 0; i < str.length; i += 1) {
-    hash = (hash << 5) - hash + str.charCodeAt(i);
-    hash |= 0; // Convert to 32bit int
-  }
-  const idx = Math.abs(hash) % colorPalette.length;
-  return colorPalette[idx];
-}
+const getColorForUserId = (userId) => {
+  const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FFEAA7', '#DDA0DD', '#98D8C8'];
+  const hash = userId.split('').reduce((a, b) => {
+    a = ((a << 5) - a) + b.charCodeAt(0);
+    return a & a;
+  }, 0);
+  return colors[Math.abs(hash) % colors.length];
+};
 
 const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   const { id: paramId } = useParams();
   const id = documentId || paramId; // Use prop if provided, otherwise use param
   const navigate = useNavigate();
   const { isDark } = useTheme();
-  const { user } = useAuth();
-
+  const authContext = useContext(AuthContext);
+  
+  // Use authContext.user instead of useAuth
+  const user = authContext.user;
+  const loading = !authContext.isAuthenticated; // or however you track loading in AuthContext
+  
   const [document, setDocument] = useState({ title: '', content: [] });
   const [isLoading, setIsLoading] = useState(true);
   const [connectedUsers, setConnectedUsers] = useState([]);
@@ -54,6 +56,43 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   
   const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit, handleAutoSaveSuccess);
 
+  useEffect(() => {
+    console.log('🔍 User state changed:', { 
+      user, 
+      userId: user?.id || user?._id, 
+      userName: user?.name || user?.username || user?.email 
+    });
+  }, [user]);
+
+  useEffect(() => {
+    console.log('🔍 Auth Debug:', { 
+      user, 
+      userKeys: user ? Object.keys(user) : 'no user',
+      userId: user?.id,
+      userIdAlt: user?._id,
+      userName: user?.name,
+      userEmail: user?.email
+    });
+  }, [user]);
+
+  useEffect(() => {
+    console.log('🔍 User loading state:', { user, loading, isAuthenticated: !!user });
+  }, [user, loading]);
+
+  useEffect(() => {
+    if (user) {
+      console.log('🔍 User object structure:', {
+        user,
+        keys: Object.keys(user),
+        id: user.id,
+        _id: user._id,
+        userId: user.userId,
+        name: user.name,
+        username: user.username,
+        email: user.email
+      });
+    }
+  }, [user]);
 
   //Socket connection
   const {
@@ -70,7 +109,18 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
     offUserLeft,
     offUsersInDocument,
     isConnected,
-  } = useSocket(id, user?.id || user?._id, user?.name || user?.username || user?.email || 'Anonymous');
+  } = useSocket(
+    id, 
+    user?.id || user?._id,
+    user?.name || user?.username || user?.email || 'Anonymous'
+  );
+
+  console.log('🔗 Socket status:', { 
+    isConnected, 
+    userId: user?.id || user?._id, 
+    documentId: id,
+    user: user
+  });
 
   
  useEffect(() => {
@@ -125,11 +175,18 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
         const currentContent = JSON.stringify(prevDoc.content);
         const remoteContent = JSON.stringify(content);
 
-        if (hasConflict(currentContent, remoteContent, lastSavedContent)) {
-          console.warn('Conflict detected - merging changes');
-          // In a real app, you'd want better conflict resolution
-          return { ...prevDoc, content };
-        }
+      if (hasConflict(currentContent, remoteContent, lastSavedContent)) {
+      console.warn('Conflict detected - merging changes');
+      
+      // Better conflict resolution
+      const mergedContent = mergeTextContent(
+        prevDoc.content, 
+        content, 
+        lastSavedContent
+      );
+      
+      return { ...prevDoc, content: mergedContent };
+    }
 
         return { ...prevDoc, content };
       });
@@ -139,11 +196,25 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
     // Remote cursor/selection updates
     onCursorChange(({ userId: remoteUserId, userName: remoteUserName, position, selection }) => {
-      console.log('Received cursor change:', { remoteUserId, remoteUserName, position, selection });
-      if (!remoteUserId || (remoteUserId === (user?.id || user?._id))) return;
+      console.log('📥 Received cursor change:', { 
+        remoteUserId, 
+        remoteUserName, 
+        position, 
+        selection,
+        currentUserId: user?.id || user?._id
+      });
+      
+      if (!remoteUserId || (remoteUserId === (user?.id || user?._id))) {
+        console.log('❌ Ignoring cursor change - same user or no userId');
+        return;
+      }
+      
       const color = getColorForUserId(remoteUserId);
       const index = selection?.index ?? position ?? 0;
       const length = selection?.length ?? 0;
+      
+      console.log('✅ Setting remote selection:', { remoteUserId, index, length, color });
+      
       setRemoteSelections((prev) => ({
         ...prev,
         [remoteUserId]: {
@@ -297,9 +368,15 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
             {document.title || 'Untitled Document'}
           </h1>
           <div className="flex items-center mt-2 space-x-4">
-            <div className={`flex items-center space-x-2 ${isOnline ? 'text-green-500' : 'text-red-500'}`}>
-              <div className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-              <span className="text-sm">{isOnline ? 'Online' : 'Offline'}</span>
+            <div className={`flex items-center space-x-2 ${isConnected ? 'text-green-500' : 'text-red-500'}`}>
+              <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`}></div>
+              <span className="text-sm">{isConnected ? 'Connected' : 'Disconnected'}</span>
+            </div>
+            <div className="text-sm text-gray-500">
+              User: {user?.name || user?.username || user?.email || 'Not logged in'}
+            </div>
+            <div className="text-sm text-gray-500">
+              ID: {user?.id || user?._id || 'No ID'}
             </div>
             <div className={`flex items-center space-x-2 text-sm ${
               isSaving ? 'text-blue-500' : 
@@ -383,29 +460,27 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
                 key={index}
                 content={element.content}
                 isReadOnly={isReadOnly}
+                user={user}
                 remoteSelections={Object.values(remoteSelections)}
                 onChange={isReadOnly ? undefined : (newContent) => {
                   const updatedContent = [...document.content];
                   updatedContent[index].content = newContent;
                   handleChange(updatedContent);
                 }}
-                // onSelectionChange={(selection) => {
-                //   if (!isReadOnly) {
-                //     if (selection) {
-                //       console.log('Emitting cursor change:', selection);
-                //       emitCursorChange(selection.index, selection);
-                //     }
-                //   }
-                // }}
                 onSelectionChange={(selection) => {
-                  console.log('isConnected at selection:', isConnected);
+                  console.log('📡 About to emit cursor change:', { 
+                    selection, 
+                    isReadOnly, 
+                    isConnected, 
+                    userId: user?.id || user?._id 
+                  });
                   if (!isReadOnly && selection && isConnected) {
-                    console.log('Emitting cursor change:', selection);
+                    console.log('🚀 Emitting cursor change:', selection.index, selection);
                     emitCursorChange(selection.index, selection);
+                  } else {
+                    console.log('❌ Not emitting cursor change - conditions not met');
                   }
                 }}
-                
-                
               />
             );
           } else if (element.type === 'image') {

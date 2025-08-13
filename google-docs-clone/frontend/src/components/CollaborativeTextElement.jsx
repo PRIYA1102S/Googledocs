@@ -3,7 +3,7 @@ import ReactQuill from 'react-quill';
 import { useTheme } from '../contexts/ThemeContext';
 import 'react-quill/dist/quill.snow.css';
 
-const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isReadOnly = false, remoteSelections = [] }) => {
+const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isReadOnly = false, remoteSelections = [], user }) => {
     const [value, setValue] = useState(content);
     const { isDark } = useTheme();
     const quillRef = useRef(null);
@@ -78,11 +78,12 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
     }, [onChange, onSelectionChange, isReadOnly]);
 
     const handleSelectionChange = useCallback((range, source, editor) => {
+        console.log('🔍 Selection change detected:', { range, source, userId: user?.id || user?._id });
         if (source === 'user' && range && onSelectionChange) {
-            console.log('Selection changed:', range, 'source:', source);
+            console.log('✅ Emitting selection change:', range);
             onSelectionChange(range);
         }
-    }, [onSelectionChange]);
+    }, [onSelectionChange, user]);
 
     // Method to apply remote changes
     const applyRemoteChange = useCallback((newContent) => {
@@ -244,11 +245,10 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
                     />
 
                     {/* Remote selections & cursors */}
-                    {quillRef.current && remoteSelections && remoteSelections.map((sel) => {
+                    {quillRef.current && remoteSelections && Object.values(remoteSelections).map((sel) => {
                         try {
                             const quill = quillRef.current.getEditor();
                             const bounds = quill.getBounds(sel.index, sel.length || 0);
-                            const container = quill.getBounds(0, quill.getLength());
                             if (!bounds) return null;
 
                             const cursorStyle = {
@@ -280,7 +280,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
                                 top: `${bounds.top}px`,
                                 width: `${bounds.width || 2}px`,
                                 height: `${bounds.height || 18}px`,
-                                backgroundColor: `${sel.color}33`, // ~20% opacity
+                                backgroundColor: `${sel.color}33`,
                                 zIndex: 5,
                             } : null;
 
@@ -292,6 +292,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
                                 </div>
                             );
                         } catch (e) {
+                            console.error('Error rendering remote cursor:', e);
                             return null;
                         }
                     })}

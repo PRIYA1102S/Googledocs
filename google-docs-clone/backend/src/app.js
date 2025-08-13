@@ -70,59 +70,25 @@ io.on('connection', (socket) => {
 
     // Join a document room
     socket.on('join-document', async ({ documentId, userId, userName }) => {
-        try {
-            // Check if user has permission to access the document
-            const document = await Document.findById(documentId);
-            if (!document) {
-                socket.emit('error', { message: 'Document not found' });
-                return;
-            }
-
-            // Check if user can view the document
-            if (!document.canView(userId)) {
-                socket.emit('error', { message: 'Unauthorized access to document' });
-                return;
-            }
-
-            socket.join(documentId);
-            socket.documentId = documentId;
-            socket.userId = userId;
-            socket.userName = userName;
-
-            // Get user permission for this document
-            const userPermission = document.getUserPermission(userId);
-            socket.userPermission = userPermission;
-
-            // Track users in the document room
-            if (!documentRooms.has(documentId)) {
-                documentRooms.set(documentId, new Map());
-            }
-            
-            const roomUsers = documentRooms.get(documentId);
-            roomUsers.set(socket.id, { 
-                userId, 
-                userName, 
-                socketId: socket.id,
-                permission: userPermission
-            });
-
-            // Notify other users in the room
-            socket.to(documentId).emit('user-joined', {
-                userId,
-                userName,
-                socketId: socket.id,
-                permission: userPermission
-            });
-
-            // Send current users list to the new user
-            const currentUsers = Array.from(roomUsers.values());
-            socket.emit('users-in-document', currentUsers);
-
-            logger.info(`User ${userName} (${userId}) joined document ${documentId} with permission: ${userPermission}`);
-        } catch (error) {
-            logger.error('Error joining document:', error);
-            socket.emit('error', { message: 'Failed to join document' });
-        }
+        console.log('� User joining document:', { documentId, userId, userName });
+        
+        socket.userId = userId;
+        socket.userName = userName;
+        socket.documentId = documentId;
+        
+        // Join the document room
+        socket.join(documentId);
+        console.log(`✅ User ${userName} (${userId}) joined room ${documentId}`);
+        
+        // Log current room members
+        const room = io.sockets.adapter.rooms.get(documentId);
+        console.log('👥 Current room members:', room ? Array.from(room) : 'No room');
+        
+        // Notify others in the room
+        socket.to(documentId).emit('user-joined', {
+            userId,
+            userName
+        });
     });
 
     // Handle document content changes
@@ -157,6 +123,19 @@ io.on('connection', (socket) => {
 
     // Handle cursor position changes
     socket.on('cursor-change', ({ documentId, position, selection }) => {
+        console.log('🎯 Backend received cursor-change:', { 
+            documentId, 
+            position, 
+            selection, 
+            fromUser: socket.userId,
+            fromUserName: socket.userName,
+            userPermission: socket.userPermission
+        });
+        
+        // Log all users in the room
+        const room = io.sockets.adapter.rooms.get(documentId);
+        console.log('👥 Users in room:', room ? Array.from(room) : 'No room found');
+        
         socket.to(documentId).emit('cursor-changed', {
             userId: socket.userId,
             userName: socket.userName,
@@ -164,6 +143,8 @@ io.on('connection', (socket) => {
             position,
             selection
         });
+        
+        console.log('📤 Broadcasted cursor-changed to room:', documentId);
     });
 
     // Test endpoint for debugging
@@ -201,3 +182,6 @@ io.on('connection', (socket) => {
 server.listen(PORT, () => {
     logger.info(`Server is running on port ${PORT}`);
 });
+
+
+

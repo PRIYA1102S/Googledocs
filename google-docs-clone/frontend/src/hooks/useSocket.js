@@ -7,39 +7,46 @@ const useSocket = (documentId, userId, userName) => {
   
 
   useEffect(() => {
-    if (!documentId || !userId || !userName) return;
+    if (!documentId || !userId) {
+      console.log('❌ Missing required params:', { documentId, userId, userName });
+      return;
+    }
 
-    // Initialize socket connection
-    socketRef.current = io('http://localhost:5000', {
-      withCredentials: true,
+    console.log('🔌 Creating socket connection...', { documentId, userId, userName });
+    
+    const newSocket = io('http://localhost:5000', {
+      transports: ['websocket', 'polling'],
+      timeout: 10000,
     });
 
-
-    const socket = socketRef.current;
-
-    // Add minimal connection logging
-    socket.on('connect', () => {
+    newSocket.on('connect', () => {
+      console.log('✅ Socket connected successfully:', newSocket.id);
       setIsConnected(true);
-      console.log('✅ Socket connected');
+      
+      newSocket.emit('join-document', {
+        documentId,
+        userId,
+        userName
+      });
+      console.log('📋 Emitted join-document event');
     });
 
-    socket.on('connect_error', (error) => {
-      console.error('❌ Socket connection failed:', error);
+    newSocket.on('connect_error', (error) => {
+      console.error('❌ Socket connection error:', error);
+      setIsConnected(false);
     });
 
-    // Join the document room
-    socket.emit('join-document', {
-      documentId,
-      userId,
-      userName,
+    newSocket.on('disconnect', (reason) => {
+      console.log('❌ Socket disconnected:', reason);
+      setIsConnected(false);
     });
 
-    // Cleanup on unmount
+    socketRef.current = newSocket;
+
     return () => {
-      if (socket) {
-        setIsConnected(false);
-        socket.disconnect();
-        socketRef.current = null;
+      console.log('🧹 Cleaning up socket');
+      if (newSocket) {
+        newSocket.disconnect();
       }
     };
   }, [documentId, userId, userName]);
@@ -78,6 +85,7 @@ const useSocket = (documentId, userId, userName) => {
 
   const onCursorChange = (callback) => {
     if (socketRef.current) {
+      console.log('🔗 Setting up cursor-changed listener');
       socketRef.current.on('cursor-changed', callback);
     }
   };
@@ -108,6 +116,7 @@ const useSocket = (documentId, userId, userName) => {
 
   const offCursorChange = () => {
     if (socketRef.current) {
+      console.log('🔌 Removing cursor-changed listener');
       socketRef.current.off('cursor-changed');
     }
   };
