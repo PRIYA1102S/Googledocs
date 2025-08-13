@@ -1,13 +1,12 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import { AuthProvider } from './contexts/AuthContext';
-import { ThemeProvider } from './contexts/ThemeContext';
-import Home from './pages/Home';
-import DocumentPage from './pages/DocumentPage';
-import DocumentsListPage from './pages/DocumentsListPage';
-import SharedDocumentPage from './pages/SharedDocumentPage';
-import PrivateRoute from './components/PrivateRoute';
-import SocketStatus from './components/SocketStatus';
+import React from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { AuthProvider } from "./contexts/AuthContext";
+import { ThemeProvider } from "./contexts/ThemeContext";
+import Home from "./pages/Home";
+import DocumentPage from "./pages/DocumentPage";
+import DocumentsListPage from "./pages/DocumentsListPage";
+import SharedDocumentPage from "./pages/SharedDocumentPage";
+import PrivateRoute from "./components/PrivateRoute";
 
 const App = () => {
   return (
@@ -40,9 +39,7 @@ const App = () => {
                 </PrivateRoute>
               }
             />
-
           </Routes>
-          <SocketStatus />
         </Router>
       </AuthProvider>
     </ThemeProvider>
