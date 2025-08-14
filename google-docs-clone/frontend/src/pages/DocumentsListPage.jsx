@@ -12,6 +12,8 @@ import CreateDocumentForm from '../components/CreateDocumentForm';
 import EditDocumentForm from '../components/EditDocumentForm';
 import DocumentPreview from '../components/DocumentPreview';
 import DocumentMeta from '../components/DocumentMeta';
+import { downloadDocumentAsPDF } from '../services/downloadService';
+import DownloadDropdown from '../components/DownloadDropdown';
 
 const DocumentListPage = () => {
   const [documents, setDocuments] = useState([]);
@@ -93,6 +95,15 @@ const DocumentListPage = () => {
   // Cancel editing
   const handleEditCancel = () => {
     setEditDocId(null);
+  };
+
+  const handleDownloadFromList = async (doc) => {
+    try {
+      await downloadDocumentAsPDF(doc);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download document');
+    }
   };
 
   return (
@@ -266,6 +277,9 @@ const DocumentListPage = () => {
                       <DocumentMeta document={doc} />
 
                       <div className="flex gap-2 mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                        {/* Download dropdown - available for all users */}
+                        <DownloadDropdown doc={doc} />
+
                         {/* Quick Edit - only if can edit */}
                         {(!doc.userPermission || doc.userPermission === 'owner' || doc.userPermission === 'editor') && (
                           <button

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTheme } from '../contexts/ThemeContext';
 import { getDocumentByShareableLink } from '../services/sharingService';
+import { downloadDocumentAsPDF } from '../services/downloadService';
 import CollaborativeEditor from '../components/CollaborativeEditor';
 import ThemeToggle from '../components/ThemeToggle';
 
@@ -26,6 +27,15 @@ const SharedDocumentPage = () => {
       setError(error.message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleDownload = async () => {
+    try {
+      await downloadDocumentAsPDF(document);
+    } catch (error) {
+      console.error('Download failed:', error);
+      alert('Failed to download document');
     }
   };
 
@@ -109,6 +119,21 @@ const SharedDocumentPage = () => {
               </div>
             </div>
             <div className="flex items-center space-x-4">
+              {/* Download button */}
+              <button
+                onClick={handleDownload}
+                className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
+                  isDark 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-green-600 hover:bg-green-700 text-white'
+                }`}
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-4-4m4 4l4-4m-6 4h8a2 2 0 002-2V7a2 2 0 00-2-2H6a2 2 0 00-2-2v11a2 2 0 002 2z" />
+                </svg>
+                Download PDF
+              </button>
+
               <div className={`px-3 py-1 rounded-full text-sm font-medium ${
                 userPermission === 'editor' 
                   ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'

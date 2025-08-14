@@ -6,6 +6,8 @@ import { useTheme } from '../contexts/ThemeContext';
 import ThemeToggle from '../components/ThemeToggle';
 import { getDocument } from '../services/documentService';
 import ErrorBoundary from '../components/ErrorBoundary';
+import DownloadModal from '../components/DownloadModal';
+import DownloadDropdown from '../components/DownloadDropdown';
 
 const DocumentPage = () => {
     const { isDark } = useTheme();
@@ -15,6 +17,7 @@ const DocumentPage = () => {
     const [showSharing, setShowSharing] = useState(false);
     const [userPermission, setUserPermission] = useState('viewer');
     const [loading, setLoading] = useState(true);
+    const [showDownloadModal, setShowDownloadModal] = useState(false);
 
     useEffect(() => {
         if (id) {
@@ -69,55 +72,71 @@ const DocumentPage = () => {
     }
     
     return (
-        <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-white'}`}>
+        <div className={`min-h-screen ${isDark ? 'bg-gray-900' : 'bg-gray-50'}`}>
             {/* Header */}
-            <header className={`flex justify-between items-center p-4 border-b ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}>
-                <div className="flex items-center gap-4">
-                    <button
-                        onClick={() => navigate('/documents')}
-                        className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                            isDark ? 'text-gray-300' : 'text-gray-600'
-                        }`}
-                    >
-                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-                        </svg>
-                    </button>
-                    <h1 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
-                        {document.title || 'Collaborative Document Editor'}
-                    </h1>
-                    
-                    {/* Permission indicator */}
-                    <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                        (!userPermission || userPermission === 'owner')
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : userPermission === 'editor'
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-                    }`}>
-                        {(!userPermission || userPermission === 'owner') ? 'Owner' : userPermission === 'editor' ? 'Can edit' : 'View only'}
+<header
+  className={`relative z-[1000] border-b ${isDark ? 'border-gray-700 bg-gray-800' : 'border-gray-200 bg-white'}`}
+>
+
+                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                    <div className="flex justify-between items-center py-4">
+                        <div className="flex items-center gap-4">
+                            <button
+                                onClick={() => navigate('/documents')}
+                                className={`p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
+                                    isDark ? 'text-gray-300' : 'text-gray-600'
+                                }`}
+                            >
+                                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                                </svg>
+                            </button>
+                            <h1 className={`text-xl font-semibold ${isDark ? 'text-white' : 'text-gray-800'}`}>
+                                {document.title || 'Collaborative Document Editor'}
+                            </h1>
+                            
+                            {/* Permission indicator */}
+                            <div className={`px-3 py-1 rounded-full text-sm font-medium ${
+                                (!userPermission || userPermission === 'owner')
+                                    ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                    : userPermission === 'editor'
+                                    ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                    : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            }`}>
+                                {(!userPermission || userPermission === 'owner') ? 'Owner' : userPermission === 'editor' ? 'Can edit' : 'View only'}
+                            </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-3">
+                            {/* Download dropdown with document data */}
+                            <DownloadDropdown doc={document} />
+                            
+                            {/* Advanced download button */}
+                            <button
+                                onClick={() => setShowDownloadModal(true)}
+                                className={`px-3 py-2 text-sm border rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                                    isDark ? 'border-gray-600 text-gray-300' : 'border-gray-300 text-gray-600'
+                                }`}
+                            >
+                                Advanced
+                            </button>
+
+                            {/* Share button - only for owners and editors */}
+                            {(!userPermission || userPermission === 'owner' || userPermission === 'editor') && (
+                                <button
+                                    onClick={() => setShowSharing(true)}
+                                    className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
+                                >
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                                    </svg>
+                                    Share
+                                </button>
+                            )}
+                            
+                            <ThemeToggle />
+                        </div>
                     </div>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                    {/* Share button - only for owners and editors */}
-                    {(!userPermission || userPermission === 'owner' || userPermission === 'editor') && (
-                        <button
-                            onClick={() => setShowSharing(true)}
-                            className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                                isDark 
-                                    ? 'bg-blue-600 hover:bg-blue-700 text-white' 
-                                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                            }`}
-                        >
-                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
-                            </svg>
-                            Share
-                        </button>
-                    )}
-                    
-                    <ThemeToggle />
                 </div>
             </header>
             
@@ -137,9 +156,35 @@ const DocumentPage = () => {
                     onClose={() => setShowSharing(false)}
                 />
             )}
+
+            {/* Download Modal */}
+            {showDownloadModal && (
+                <DownloadModal
+                    document={document}
+                    onClose={() => setShowDownloadModal(false)}
+                />
+            )}
         </div>
     );
 };
 
 export default DocumentPage;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
