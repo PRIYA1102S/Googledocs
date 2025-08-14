@@ -4,7 +4,7 @@ import { io } from 'socket.io-client';
 const useSocket = (documentId, userId, userName) => {
   const socketRef = useRef(null);
   const [isConnected, setIsConnected] = useState(false);
-  
+  const heartbeatRef = useRef(null);
 
   useEffect(() => {
     if (!documentId || !userId) {
@@ -28,7 +28,11 @@ const useSocket = (documentId, userId, userName) => {
         userId,
         userName
       });
-      console.log('📋 Emitted join-document event');
+      
+      // Start heartbeat
+      heartbeatRef.current = setInterval(() => {
+        newSocket.emit('heartbeat', { documentId, userId });
+      }, 30000); // Every 30 seconds
     });
 
     newSocket.on('connect_error', (error) => {
@@ -45,6 +49,9 @@ const useSocket = (documentId, userId, userName) => {
 
     return () => {
       console.log('🧹 Cleaning up socket');
+      if (heartbeatRef.current) {
+        clearInterval(heartbeatRef.current);
+      }
       if (newSocket) {
         newSocket.disconnect();
       }

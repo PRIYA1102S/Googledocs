@@ -244,7 +244,7 @@ const Home = () => {
                       onChange={(e) => setUsername(e.target.value)}
                       className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                         isDark
-                          ? "bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                          ? "bg-gray-700/50 border-gray-600 text-gray-900 placeholder-gray-400"
                           : "border-gray-300 bg-white/50 text-gray-900 placeholder-gray-500"
                       }`}
                     />
@@ -267,7 +267,7 @@ const Home = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                       isDark
-                        ? "bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                        ? "bg-gray-700/50 border-gray-600 text-gray-900 placeholder-gray-400"
                         : "border-gray-300 bg-white/50 text-gray-900 placeholder-gray-500"
                     }`}
                   />
@@ -289,7 +289,7 @@ const Home = () => {
                     onChange={(e) => setPassword(e.target.value)}
                     className={`w-full px-4 py-4 border rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 ${
                       isDark
-                        ? "bg-gray-700/50 border-gray-600 text-white placeholder-gray-400"
+                        ? "bg-gray-700/50 border-gray-600 text-gray-900 placeholder-gray-400"
                         : "border-gray-300 bg-white/50 text-gray-900 placeholder-gray-500"
                     }`}
                   />
