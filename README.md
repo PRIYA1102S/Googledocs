@@ -1,105 +1,160 @@
-# Google Docs Clone
+ Real-Time Collaborative Document Editor
 
-This project is a Google Docs-like application built using the MERN stack (MongoDB, Express, React, Node.js). It allows users to create, edit, and manage documents in a collaborative environment.
+A **full-stack, real-time collaborative document editing application** built with **React, Node.js, Express, MongoDB, Redis, and Socket.io**.
+Features include **JWT authentication, live collaboration, user presence tracking, secure sharing, role-based permissions, and export capabilities**.
 
-## Features
+ Features
 
-- User authentication (registration and login)
-- Create, read, update, and delete documents
-- Rich text editing capabilities
-- Responsive design for various devices
+ Authentication & Authorization
 
-## Technologies Used
+* User registration & login
+* JWT-based authentication
+* Role-based permissions
+* Protected routes with React Router & PrivateRoute component
+* Context API for global auth state
 
-- **Backend:**
-  - Node.js
-  - Express.js
-  - MongoDB (with Mongoose)
-  - JSON Web Tokens (JWT) for authentication
+ Document Management
 
-- **Frontend:**
-  - React.js
-  - React Router for navigation
-  - Context API for state management
+* Create, read, update, and delete (CRUD) documents
+* Document dashboard with user-specific filtering
+* Individual document editor
+* Auto-save & real-time syncing
 
-## Folder Structure
+Collaboration Features
 
-```
-google-docs-clone
-├── backend
-│   ├── src
-│   │   ├── controllers
-│   │   ├── models
-│   │   ├── routes
-│   │   ├── services
-│   │   ├── middlewares
-│   │   ├── utils
-│   │   ├── config
-│   │   └── app.js
-│   └── package.json
-├── frontend
-│   ├── src
-│   │   ├── components
-│   │   ├── pages
-│   │   ├── services
-│   │   ├── hooks
-│   │   ├── contexts
-│   │   ├── utils
-│   │   ├── App.jsx
-│   │   └── index.js
-│   └── public
-│   └── package.json
-└── .gitignore
-```
+* Real-time multi-user editing (Socket.io)
+* Shared documents via secure shareable links
+* Live cursor tracking & user presence indicators
+* User avatars and names displayed during editing
+* Redis-based **user presence tracking** with TTL to handle connection loss or expiry
 
-## Getting Started
+ UI/UX
 
-### Prerequisites
+* Light/Dark theme toggle
+* Responsive design for mobile & desktop
+* Rich text editing with formatting tools
+* Modern gradient backgrounds & animations
+* Professional landing page with feature showcase
 
-- Node.js
-- MongoDB
+ Technical Features
 
-### Installation
+* **Redis Integration** for:
 
-1. Clone the repository:
-   ```
-   git clone <repository-url>
-   ```
+  * Tracking user presence in documents
+  * Storing heartbeat timestamps
+  * Automatic removal of inactive users using TTL expiry
+* RESTful API endpoints with Express.js
+* Real-time WebSocket connections
+* Download documents as:
 
-2. Navigate to the backend directory and install dependencies:
-   ```
-   cd backend
-   npm install
-   ```
+  * PDF (via `jspdf` & `html2canvas`)
+  * Word
+  * Plain text
 
-3. Set up your MongoDB database and update the connection string in `backend/src/config/db.js`.
+ Tech Stack
 
-4. Start the backend server:
-   ```
-   npm start
-   ```
+**Frontend:**
 
-5. Navigate to the frontend directory and install dependencies:
-   ```
-   cd frontend
-   npm install
-   ```
+* React.js
+* Context API
+* React Router
+* Socket.io-client
+* Tailwind CSS / Custom Styling
 
-6. Start the frontend application:
-   ```
-   npm start
-   ```
+**Backend:**
 
-### Usage
+* Node.js
+* Express.js
+* MongoDB (Mongoose ORM)
+* Redis (for presence tracking)
+* Socket.io
 
-- Register a new user or log in with existing credentials.
-- Create new documents or edit existing ones using the document editor.
-- Save changes and manage your documents effectively.
+**Other Libraries:**
 
-## Contributing
+* `jsonwebtoken` – Authentication
+* `bcrypt` – Password hashing
+* `jspdf` & `html2canvas` – Document export
+* `dotenv` – Environment configuration
 
-Contributions are welcome! Please open an issue or submit a pull request for any improvements or features.
+ Installation & Setup
 
-## License
+ 1️⃣ Clone the Repository
 
-This project is licensed under the MIT License.
+```bash
+git clone https://github.com/yourusername/realtime-doc-editor.git
+cd realtime-doc-editor
+
+
+ 2️⃣ Install Dependencies
+
+Backend
+
+```bash
+cd server
+npm install
+
+
+ Frontend
+
+```bash
+cd ../client
+npm install
+
+
+ 3️⃣ Set Environment Variables
+
+Create a `.env` file in the **server** folder:
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
+REDIS_HOST=localhost
+REDIS_PORT=6379
+
+
+ 4️⃣ Run Redis
+
+Make sure Redis is installed and running:
+
+```bash
+redis-server
+
+
+ 5️⃣ Start the App
+
+Backend
+
+```bash
+cd server
+npm run dev
+
+ Frontend
+
+```bash
+cd ../client
+npm start
+
+
+ Redis Presence Tracking Logic
+
+* On user connect:
+
+* Save user ID, document ID, and a timestamp in Redis with TTL (e.g., 30 seconds)
+* Every few seconds, a heartbeat updates the timestamp and resets TTL
+* If TTL expires, the backend automatically removes the user from the active list
+* UI updates in real-time to show who’s editing the document
+
+ Folder Structure
+
+root/
+│── client/              # React frontend
+│── server/              # Node.js + Express backend
+│   ├── controllers/     # Route logic
+│   ├── models/          # MongoDB schemas
+│   ├── routes/          # API endpoints
+│   ├── utils/           # Helpers (JWT, Redis)
+│   └── socket.js        # Socket.io event handling
+└── README.md
+
+
