@@ -50,14 +50,13 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   
   // Callback to reset unsaved changes when auto-save completes
   const handleAutoSaveSuccess = useCallback(() => {
-    console.log('Auto-save success callback triggered, resetting hasUnsavedChanges');
     setHasUnsavedChanges(false);
   }, []);
   
   const { forceSave, isSaving } = useAutoSave(id, document, isOnline && canEdit, handleAutoSaveSuccess);
 
   useEffect(() => {
-    console.log('🔍 User state changed:', { 
+    console.log('User state changed:', { 
       user, 
       userId: user?.id || user?._id, 
       userName: user?.name || user?.username || user?.email 
@@ -65,7 +64,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   }, [user]);
 
   useEffect(() => {
-    console.log('🔍 Auth Debug:', { 
+    console.log('Auth Debug:', { 
       user, 
       userKeys: user ? Object.keys(user) : 'no user',
       userId: user?.id,
@@ -76,12 +75,12 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
   }, [user]);
 
   useEffect(() => {
-    console.log('🔍 User loading state:', { user, loading, isAuthenticated: !!user });
+    console.log('User loading state:', { user, loading, isAuthenticated: !!user });
   }, [user, loading]);
 
   useEffect(() => {
     if (user) {
-      console.log('🔍 User object structure:', {
+      console.log('User object structure:', {
         user,
         keys: Object.keys(user),
         id: user.id,
@@ -115,7 +114,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
     user?.name || user?.username || user?.email || 'Anonymous'
   );
 
-  console.log('🔗 Socket status:', { 
+  console.log('Socket status:', { 
     isConnected, 
     userId: user?.id || user?._id, 
     documentId: id,
@@ -196,7 +195,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
 
     // Remote cursor/selection updates
     onCursorChange(({ userId: remoteUserId, userName: remoteUserName, position, selection }) => {
-      console.log('📥 Received cursor change:', { 
+      console.log('Received cursor change:', { 
         remoteUserId, 
         remoteUserName, 
         position, 
@@ -205,7 +204,6 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
       });
       
       if (!remoteUserId || (remoteUserId === (user?.id || user?._id))) {
-        console.log('❌ Ignoring cursor change - same user or no userId');
         return;
       }
       
@@ -213,8 +211,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
       const index = selection?.index ?? position ?? 0;
       const length = selection?.length ?? 0;
       
-      console.log('✅ Setting remote selection:', { remoteUserId, index, length, color });
-      
+    
       setRemoteSelections((prev) => ({
         ...prev,
         [remoteUserId]: {
@@ -468,17 +465,16 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
                   handleChange(updatedContent);
                 }}
                 onSelectionChange={(selection) => {
-                  console.log('📡 About to emit cursor change:', { 
+                  console.log('About to emit cursor change:', { 
                     selection, 
                     isReadOnly, 
                     isConnected, 
                     userId: user?.id || user?._id 
                   });
                   if (!isReadOnly && selection && isConnected) {
-                    console.log('🚀 Emitting cursor change:', selection.index, selection);
                     emitCursorChange(selection.index, selection);
                   } else {
-                    console.log('❌ Not emitting cursor change - conditions not met');
+                    console.log('Not emitting cursor change - conditions not met');
                   }
                 }}
               />

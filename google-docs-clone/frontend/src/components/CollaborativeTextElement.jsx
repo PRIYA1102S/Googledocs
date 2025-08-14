@@ -78,9 +78,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
     }, [onChange, onSelectionChange, isReadOnly]);
 
     const handleSelectionChange = useCallback((range, source, editor) => {
-        console.log('🔍 Selection change detected:', { range, source, userId: user?.id || user?._id });
         if (source === 'user' && range && onSelectionChange) {
-            console.log('✅ Emitting selection change:', range);
             onSelectionChange(range);
         }
     }, [onSelectionChange, user]);
@@ -91,9 +89,7 @@ const CollaborativeTextElement = ({ content, onChange, onSelectionChange, isRead
         setValue(newContent);
     }, []);
 
-    // Note: we no longer rely on imperative handle from parent; the component
-    // reacts to prop changes directly to display remote edits.
-
+    
     // Enhanced custom styles for dark mode
     const customStyles = `
         .ql-editor {
