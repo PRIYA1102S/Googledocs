@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "A Google Docs-like application built with the MERN stack.",
   "main": "index.js",
-  "proxy": "http://localhost:5000",
   "scripts": {
     "start": "cross-env NODE_OPTIONS=--openssl-legacy-provider craco start",
     "build": "cross-env NODE_OPTIONS=--openssl-legacy-provider craco build",

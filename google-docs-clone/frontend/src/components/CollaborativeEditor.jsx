@@ -325,7 +325,7 @@ const CollaborativeEditor = ({ documentId, isReadOnly = false }) => {
     formData.append('image', file);
 
     try {
-      const res = await fetch('http://localhost:5000/api/upload-image', {
+      const res = await fetch('https://collabdocs-oeum.onrender.com/api/upload-image', {
         method: 'POST',
         body: formData,
       });

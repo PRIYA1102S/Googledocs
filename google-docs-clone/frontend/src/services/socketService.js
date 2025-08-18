@@ -7,7 +7,7 @@ class SocketService {
     this.isConnected = false;
   }
 
-  connect(serverUrl = 'http://localhost:5000') {
+  connect(serverUrl = 'https://collabdocs-oeum.onrender.com') {
     if (this.socket && this.isConnected) {
       return this.socket;
     }

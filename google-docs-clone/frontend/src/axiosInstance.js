@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-    baseURL: 'http://localhost:5000/'
+    baseURL: 'https://collabdocs-oeum.onrender.com'
 });
 
 axiosInstance.interceptors.request.use((config) => {

@@ -12,7 +12,7 @@ const useSocket = (documentId, userId, userName) => {
       return;
     }
 
-    const newSocket = io("http://localhost:5000", {
+    const newSocket = io("https://collabdocs-oeum.onrender.com", {
       transports: ["websocket", "polling"],
       timeout: 10000,
     });
