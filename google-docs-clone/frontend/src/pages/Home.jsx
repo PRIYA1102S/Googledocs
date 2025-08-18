@@ -15,12 +15,14 @@ const Home = () => {
   const [isRegistering, setIsRegistering] = useState(false);
   const [error, setError] = useState("");
 
+  const API_BASE = "https://collabdocs-oeum.onrender.com";
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
       const endpoint = isRegistering
-        ? "/api/users/register"
-        : "/api/users/login";
+        ? `${API_BASE}/api/users/register`
+        : `${API_BASE}/api/users/login`;
       const payload = isRegistering
         ? { username, email, password }
         : { email, password };
@@ -97,9 +99,11 @@ const Home = () => {
               >
                 Create, Edit, <span className="text-blue-500">Collaborate</span>
               </h2>
-              <p className={`text-lg lg:text-xl leading-relaxed ${
-          isDark ? 'text-gray-300' : 'text-gray-600'
-        }`}>
+              <p
+                className={`text-lg lg:text-xl leading-relaxed ${
+                  isDark ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
                 Professional real-time collaborative document editor with live
                 cursor tracking, user presence indicators, and seamless
                 multi-user editing.
@@ -109,76 +113,144 @@ const Home = () => {
             {/* Features Grid with Text Animations */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 lg:gap-4">
               {[
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13 10V3L4 14h7v7l9-11h-7z"
+                      />
                     </svg>
-                  ), 
-                  text: "Real-time collaboration" 
+                  ),
+                  text: "Real-time collaboration",
                 },
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
+                      />
                     </svg>
-                  ), 
-                  text: "Live cursor tracking" 
+                  ),
+                  text: "Live cursor tracking",
                 },
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                      />
                     </svg>
-                  ), 
-                  text: "Role-based permissions" 
+                  ),
+                  text: "Role-based permissions",
                 },
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"
+                      />
                     </svg>
-                  ), 
-                  text: "Auto-save & sync" 
+                  ),
+                  text: "Auto-save & sync",
                 },
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.367 2.684 3 3 0 00-5.367-2.684z"
+                      />
                     </svg>
-                  ), 
-                  text: "Secure sharing" 
+                  ),
+                  text: "Secure sharing",
                 },
-                { 
+                {
                   icon: (
-                    <svg className="w-5 h-5 lg:w-6 lg:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    <svg
+                      className="w-5 h-5 lg:w-6 lg:h-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                      />
                     </svg>
-                  ), 
-                  text: "Rich text editing" 
-                }
+                  ),
+                  text: "Rich text editing",
+                },
               ].map((feature, index) => (
-                <div 
-                  key={index} 
+                <div
+                  key={index}
                   className={`flex items-center space-x-3 p-3 lg:p-4 rounded-xl transition-all duration-500 hover:scale-105 animate-fade-in-up ${
-                    isDark 
-                      ? 'bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50' 
-                      : 'bg-white/60 hover:bg-white/80 border border-gray-200/50 shadow-sm hover:shadow-md'
+                    isDark
+                      ? "bg-gray-800/50 hover:bg-gray-800/70 border border-gray-700/50"
+                      : "bg-white/60 hover:bg-white/80 border border-gray-200/50 shadow-sm hover:shadow-md"
                   }`}
-                  style={{ 
+                  style={{
                     animationDelay: `${index * 0.2}s`,
                     opacity: 0,
-                    animation: `fadeInUp 0.6s ease-out ${index * 0.2}s forwards`
+                    animation: `fadeInUp 0.6s ease-out ${
+                      index * 0.2
+                    }s forwards`,
                   }}
                 >
-                  <div className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
-                    isDark ? 'bg-blue-600/20 text-blue-400' : 'bg-blue-100 text-blue-600'
-                  }`}>
+                  <div
+                    className={`p-2 rounded-lg transition-all duration-300 hover:scale-110 ${
+                      isDark
+                        ? "bg-blue-600/20 text-blue-400"
+                        : "bg-blue-100 text-blue-600"
+                    }`}
+                  >
                     {feature.icon}
                   </div>
-                  <span className={`font-medium text-sm lg:text-base transition-all duration-300 hover:text-blue-500 ${
-                    isDark ? 'text-gray-300' : 'text-gray-700'
-                  }`}>
+                  <span
+                    className={`font-medium text-sm lg:text-base transition-all duration-300 hover:text-blue-500 ${
+                      isDark ? "text-gray-300" : "text-gray-700"
+                    }`}
+                  >
                     {feature.text}
                   </span>
                 </div>
@@ -335,11 +407,3 @@ const Home = () => {
 };
 
 export default Home;
-
-
-
-
-
-
-
-
